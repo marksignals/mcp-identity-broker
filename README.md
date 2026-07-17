@@ -85,6 +85,18 @@ replace the `command`/`args` with `github-mcp-server` / `["stdio"]` as described
 in that project's documentation. Do not replace the placeholder with an npm
 package: GitHub's official server is distributed as a container or binary.
 
+If GitHub CLI already holds separate account credentials, the included
+`scripts/start-github-identity-broker.ps1` obtains a selected account token for
+the child process only. It does **not** run `gh auth switch`, so it does not
+change the CLI account used by another agent. The local config remains ignored:
+
+```powershell
+.\scripts\start-github-identity-broker.ps1 `
+  -ConfigPath "$PWD\identity-broker.marksignals.json" `
+  -GitHubUser marksignals `
+  -Principal marksignals-agent
+```
+
 ## Security posture
 
 - Rejects literal credentials in config.

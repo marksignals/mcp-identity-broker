@@ -4,4 +4,6 @@ coverage/
 .env.*
 credentials*.json
 identity-broker.json
+identity-broker.*.json
+.tools/
 npm-debug.log*
