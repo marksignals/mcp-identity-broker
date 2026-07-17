@@ -9,11 +9,12 @@
       "allowed_principals": ["marksignals-agent"],
       "providers": {
         "github": {
-          "command": "npx",
-          "args": ["-y", "@github/github-mcp-server"],
-          "allowed_tools": ["get_me", "get_repository", "create_issue"],
+          "command": "docker",
+          "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "-e", "GITHUB_TOOLS", "ghcr.io/github/github-mcp-server"],
+          "allowed_tools": ["get_file_contents", "issue_read", "create_issue"],
           "env": {
-            "GITHUB_PERSONAL_ACCESS_TOKEN": "${MARKSIGNALS_GITHUB_TOKEN}"
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${MARKSIGNALS_GITHUB_TOKEN}",
+            "GITHUB_TOOLS": "${MARKSIGNALS_GITHUB_TOOLS}"
           }
         },
         "outlook": {
@@ -30,11 +31,12 @@
       "allowed_principals": ["runcue-agent"],
       "providers": {
         "github": {
-          "command": "npx",
-          "args": ["-y", "@github/github-mcp-server"],
-          "allowed_tools": ["get_me", "get_repository"],
+          "command": "docker",
+          "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "-e", "GITHUB_TOOLS", "ghcr.io/github/github-mcp-server"],
+          "allowed_tools": ["get_file_contents", "issue_read"],
           "env": {
-            "GITHUB_PERSONAL_ACCESS_TOKEN": "${RUNCUE_GITHUB_TOKEN}"
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${RUNCUE_GITHUB_TOKEN}",
+            "GITHUB_TOOLS": "${RUNCUE_GITHUB_TOOLS}"
           }
         }
       }

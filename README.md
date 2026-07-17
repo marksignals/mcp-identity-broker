@@ -44,6 +44,7 @@ npm install
 Copy-Item config.example.json identity-broker.json
 $env:IDENTITY_BROKER_PRINCIPAL = "marksignals-agent"
 $env:MARKSIGNALS_GITHUB_TOKEN = "..." # inject from a vault; never commit
+$env:MARKSIGNALS_GITHUB_TOOLS = "get_file_contents,issue_read,create_issue"
 node src/server.js --config "$PWD\identity-broker.json"
 ```
 
@@ -77,6 +78,12 @@ The hosted Outlook connector in this Codex session cannot be retrofitted by
 this program. A small Microsoft Graph MCP server (or another direct provider
 adapter) must be configured for the Mark Signals alias. That is intentional:
 no shared connector identity is ever switched.
+
+The GitHub example uses GitHub's official MCP server in Docker. If Docker is
+not available, build or download its official `github-mcp-server` binary and
+replace the `command`/`args` with `github-mcp-server` / `["stdio"]` as described
+in that project's documentation. Do not replace the placeholder with an npm
+package: GitHub's official server is distributed as a container or binary.
 
 ## Security posture
 
