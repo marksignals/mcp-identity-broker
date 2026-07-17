@@ -1,0 +1,43 @@
+{
+  "principal_env": "IDENTITY_BROKER_PRINCIPAL",
+  "lease": {
+    "default_ttl_seconds": 120,
+    "maximum_ttl_seconds": 900
+  },
+  "identities": {
+    "marksignals": {
+      "allowed_principals": ["marksignals-agent"],
+      "providers": {
+        "github": {
+          "command": "npx",
+          "args": ["-y", "@github/github-mcp-server"],
+          "allowed_tools": ["get_me", "get_repository", "create_issue"],
+          "env": {
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${MARKSIGNALS_GITHUB_TOKEN}"
+          }
+        },
+        "outlook": {
+          "command": "node",
+          "args": ["/absolute/path/to/your-graph-mcp-server.js"],
+          "allowed_tools": ["get_profile", "search_messages", "send_email"],
+          "env": {
+            "MICROSOFT_GRAPH_ACCESS_TOKEN": "${MARKSIGNALS_OUTLOOK_TOKEN}"
+          }
+        }
+      }
+    },
+    "runcue": {
+      "allowed_principals": ["runcue-agent"],
+      "providers": {
+        "github": {
+          "command": "npx",
+          "args": ["-y", "@github/github-mcp-server"],
+          "allowed_tools": ["get_me", "get_repository"],
+          "env": {
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${RUNCUE_GITHUB_TOKEN}"
+          }
+        }
+      }
+    }
+  }
+}

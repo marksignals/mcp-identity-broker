@@ -1,0 +1,29 @@
+{
+  "name": "mcp-identity-broker",
+  "version": "0.1.0",
+  "description": "Lease-bound identity isolation for upstream MCP tools.",
+  "type": "module",
+  "bin": {
+    "mcp-identity-broker": "src/server.js"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.24.1"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marksignals/mcp-identity-broker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/marksignals/mcp-identity-broker/issues"
+  },
+  "homepage": "https://github.com/marksignals/mcp-identity-broker#readme"
+}
