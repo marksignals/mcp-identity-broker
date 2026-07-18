@@ -187,6 +187,16 @@ npm test
 The test suite covers exclusive leases, expiry, cross-principal isolation, and
 rejection of literal credentials in configuration.
 
+## Assess a configuration
+
+Run the included [Identity Boundary Assessment](docs/IDENTITY_BOUNDARY_ASSESSMENT.md)
+to create a safe, repeatable pass/fail report for a broker configuration. It
+does not start a provider or read a credential.
+
+```powershell
+npm run eval:identity-boundary -- .\identity-broker.json
+```
+
 ## License
 
 [MIT](LICENSE)

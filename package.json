@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "eval:identity-boundary": "node scripts/run-identity-boundary-eval.mjs"
   },
   "engines": {
     "node": ">=20"
