@@ -12,6 +12,6 @@ test("assessment offer has a fixed price and bounded delivery scope", () => {
   assert.equal(offer.scope.identity_aliases, 3);
   assert.equal(offer.scope.providers, 2);
   assert.equal(offer.scope.allowlisted_actions, 10);
-  assert.equal(offer.checkout.environment_variable, "MARKSIGNALS_STRIPE_API_KEY");
-  assert.equal(offer.checkout.status, "not_created");
+  assert.equal(offer.checkout.status, "active");
+  assert.equal(offer.checkout.url, "https://buy.stripe.com/cNi5kw3nm12zgdq62e3gk03");
 });

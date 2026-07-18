@@ -26,5 +26,9 @@
     "handling or retaining customer secret values",
     "enterprise identity-provider implementation"
   ],
-  "checkout": {"provider": "stripe", "environment_variable": "MARKSIGNALS_STRIPE_API_KEY", "status": "not_created"}
+  "checkout": {
+    "provider": "stripe",
+    "status": "active",
+    "url": "https://buy.stripe.com/cNi5kw3nm12zgdq62e3gk03"
+  }
 }

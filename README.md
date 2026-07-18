@@ -205,6 +205,8 @@ one agent host, up to three account aliases, two providers, and ten permitted
 actions. The fixed price is $1,500 USD. The deliverable is a private map,
 boundary findings, fixes, and a rerun proof within five business days.
 
+[Buy the assessment](https://buy.stripe.com/cNi5kw3nm12zgdq62e3gk03)
+
 This is not an enterprise IAM deployment or a penetration test. Read the
 [report template](docs/IDENTITY_BOUNDARY_ASSESSMENT_REPORT_TEMPLATE.md) before
 buying so the acceptance criteria are explicit.
@@ -216,6 +218,10 @@ It performs no action without `--publish`:
 node .\scripts\create-stripe-assessment-link.mjs
 node .\scripts\create-stripe-assessment-link.mjs --publish
 ```
+
+The standard Stripe **One-time payments** restricted-key template supplies the
+write permissions this launcher needs. It does not need account-profile read
+permission.
 
 ## License
 
