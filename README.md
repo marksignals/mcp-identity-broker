@@ -98,6 +98,29 @@ status -> acquire -> invoke -> release
 An expired or released lease cannot invoke a provider tool. A second holder
 cannot acquire an identity while it is leased.
 
+## Adopt it in an existing project
+
+If a project already has an agent in progress, give it a small identity
+contract instead of relying on a remembered account or browser session.
+
+1. Copy [`templates/project-identity.json`](templates/project-identity.json)
+   to `.mcp-identity.json` in the project. Use an alias and principal that are
+   specific to that project; never put a credential in this file.
+2. Add [`templates/AGENTS.identity-broker.md`](templates/AGENTS.identity-broker.md)
+   to the project's agent instructions. Claude Code users can place the same
+   instructions in `CLAUDE.md`.
+3. Register this broker once in the agent host, with a launcher that fixes the
+   principal and supplies only that project's provider credentials.
+
+After that, an MCP-capable coding agent can read `.mcp-identity.json`, acquire
+the configured identity, use an allowlisted provider tool, and release the
+lease. The file tells the agent *which* identity to use; the broker remains the
+enforcement point.
+
+This is intentionally not automatic just because an agent can see this GitHub
+repository. A host must explicitly install a local stdio MCP server before it
+can launch local code or access credentials.
+
 ## Configure identities
 
 The example config shows the shape:
@@ -133,18 +156,18 @@ config.
 
 ## GitHub CLI account helper
 
-`scripts/start-github-identity-broker.ps1` is an optional Windows helper for a
-GitHub CLI setup that already stores multiple accounts. It reads the selected
-identity and provider from your config, then makes that account's token
-available to the broker child process only. It does not run `gh auth switch`,
-so it does not change another agent's active GitHub CLI account.
+`scripts/start-github-identity-broker.mjs` is an optional launcher for a GitHub
+CLI setup that already stores multiple accounts. It reads the selected identity
+and provider from your config, then makes that account's token available to the
+broker child process only. It does not run `gh auth switch`, so it does not
+change another agent's active GitHub CLI account.
 
 ```powershell
-.\scripts\start-github-identity-broker.ps1 `
-  -ConfigPath "$PWD\identity-broker.json" `
-  -GitHubUser brand-a-github `
-  -Principal brand-a-agent `
-  -Identity brand-a
+node .\scripts\start-github-identity-broker.mjs `
+  --config "$PWD\identity-broker.json" `
+  --github-user brand-a-github `
+  --principal brand-a-agent `
+  --identity brand-a
 ```
 
 ## Security notes

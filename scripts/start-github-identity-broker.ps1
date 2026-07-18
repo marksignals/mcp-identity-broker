@@ -36,7 +36,41 @@ if ($toolsReference -and $toolsReference -notmatch '^\$\{([A-Z][A-Z0-9_]*)\}$') 
 $toolsVariable = if ($toolsReference) { $Matches[1] } else { $null }
 $principalVariable = if ($config.principal_env) { $config.principal_env } else { "IDENTITY_BROKER_PRINCIPAL" }
 
-$token = & gh auth token --hostname github.com --user $GitHubUser
+$ghCommand = Get-Command gh -ErrorAction SilentlyContinue
+if ($ghCommand) {
+    $ghPath = $ghCommand.Source
+} else {
+    $ghCandidates = @("C:\Program Files\GitHub CLI\gh.exe")
+    foreach ($programFiles in @($env:ProgramFiles, ${env:ProgramFiles(x86)})) {
+        if ($programFiles) {
+            $ghCandidates += Join-Path $programFiles "GitHub CLI\gh.exe"
+        }
+    }
+    $ghCandidates = $ghCandidates | Where-Object { Test-Path -LiteralPath $_ }
+    $ghPath = $ghCandidates | Select-Object -First 1
+}
+if (-not $ghPath) {
+    throw "GitHub CLI was not found. Install GitHub CLI or add gh.exe to PATH."
+}
+
+$nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+if ($nodeCommand) {
+    $nodePath = $nodeCommand.Source
+} else {
+    $nodeCandidates = @("C:\Program Files\nodejs\node.exe")
+    foreach ($programFiles in @($env:ProgramFiles, ${env:ProgramFiles(x86)})) {
+        if ($programFiles) {
+            $nodeCandidates += Join-Path $programFiles "nodejs\node.exe"
+        }
+    }
+    $nodeCandidates = $nodeCandidates | Where-Object { Test-Path -LiteralPath $_ }
+    $nodePath = $nodeCandidates | Select-Object -First 1
+}
+if (-not $nodePath) {
+    throw "Node.js was not found. Install Node.js 20 or later or add node.exe to PATH."
+}
+
+$token = & $ghPath auth token --hostname github.com --user $GitHubUser
 if (-not $token) {
     throw "No stored GitHub credential found for $GitHubUser. Use gh auth login for that account first."
 }
@@ -47,7 +81,7 @@ if ($toolsVariable) {
     Set-Item -LiteralPath "Env:$toolsVariable" -Value ($providerConfig.allowed_tools -join ",")
 }
 try {
-    & node (Join-Path $root "src/server.js") --config $ConfigPath
+    & $nodePath (Join-Path $root "src/server.js") --config $ConfigPath
 } finally {
     Remove-Item -LiteralPath "Env:$tokenVariable" -ErrorAction SilentlyContinue
     if ($toolsVariable) {

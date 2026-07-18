@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "broker_server": "identity-broker",
+  "principal": "brand-a-agent",
+  "identity": "brand-a",
+  "provider": "github",
+  "allowed_tools": [
+    "get_file_contents",
+    "issue_read"
+  ],
+  "policy": {
+    "acquire_before_provider_action": true,
+    "release_after_provider_action": true,
+    "never_switch_shared_account_state": true
+  }
+}
