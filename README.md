@@ -65,9 +65,9 @@ Use your operating system, vault, or secret-injection tool to provide the
 variables referenced by your local config. For the GitHub example:
 
 ```powershell
-$env:IDENTITY_BROKER_PRINCIPAL = "marksignals-agent"
-$env:MARKSIGNALS_GITHUB_TOKEN = "<token from your secret manager>"
-$env:MARKSIGNALS_GITHUB_TOOLS = "get_file_contents,issue_read,create_issue"
+$env:IDENTITY_BROKER_PRINCIPAL = "brand-a-agent"
+$env:BRAND_A_GITHUB_TOKEN = "<token from your secret manager>"
+$env:BRAND_A_GITHUB_TOOLS = "get_file_contents,issue_read,create_issue"
 ```
 
 Never commit a token. The broker rejects literal credential values in its JSON
@@ -105,15 +105,15 @@ The example config shows the shape:
 ```json
 {
   "identities": {
-    "marksignals": {
-      "allowed_principals": ["marksignals-agent"],
+    "brand-a": {
+      "allowed_principals": ["brand-a-agent"],
       "providers": {
         "github": {
           "command": "docker",
           "args": ["run", "-i", "--rm", "..."],
           "allowed_tools": ["get_file_contents", "issue_read"],
           "env": {
-            "GITHUB_PERSONAL_ACCESS_TOKEN": "${MARKSIGNALS_GITHUB_TOKEN}"
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${BRAND_A_GITHUB_TOKEN}"
           }
         }
       }
@@ -134,18 +134,17 @@ config.
 ## GitHub CLI account helper
 
 `scripts/start-github-identity-broker.ps1` is an optional Windows helper for a
-GitHub CLI setup that already stores multiple accounts. It obtains the selected
-account's token for the broker child process only. It does not run `gh auth
-switch`, so it does not change another agent's active GitHub CLI account.
-
-It is a reference launcher for the `marksignals` example configuration. Adapt
-the environment-variable names before using it for another identity.
+GitHub CLI setup that already stores multiple accounts. It reads the selected
+identity and provider from your config, then makes that account's token
+available to the broker child process only. It does not run `gh auth switch`,
+so it does not change another agent's active GitHub CLI account.
 
 ```powershell
 .\scripts\start-github-identity-broker.ps1 `
-  -ConfigPath "$PWD\identity-broker.marksignals.json" `
-  -GitHubUser marksignals `
-  -Principal marksignals-agent
+  -ConfigPath "$PWD\identity-broker.json" `
+  -GitHubUser brand-a-github `
+  -Principal brand-a-agent `
+  -Identity brand-a
 ```
 
 ## Security notes
