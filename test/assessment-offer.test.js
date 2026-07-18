@@ -14,4 +14,5 @@ test("assessment offer has a fixed price and bounded delivery scope", () => {
   assert.equal(offer.scope.allowlisted_actions, 10);
   assert.equal(offer.checkout.status, "active");
   assert.equal(offer.checkout.url, "https://buy.stripe.com/cNi5kw3nm12zgdq62e3gk03");
+  assert.equal(offer.checkout.payment_link_id, "plink_1TuP2l2M81n555HHCRiWhV1e");
 });

@@ -29,6 +29,7 @@
   "checkout": {
     "provider": "stripe",
     "status": "active",
-    "url": "https://buy.stripe.com/cNi5kw3nm12zgdq62e3gk03"
+    "url": "https://buy.stripe.com/cNi5kw3nm12zgdq62e3gk03",
+    "payment_link_id": "plink_1TuP2l2M81n555HHCRiWhV1e"
   }
 }
