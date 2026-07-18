@@ -197,6 +197,26 @@ does not start a provider or read a credential.
 npm run eval:identity-boundary -- .\identity-broker.json
 ```
 
+## Fixed-scope assessment
+
+The broker stays free and open source. Teams that need help applying it can
+buy an [Identity Boundary Assessment](offers/identity-boundary-assessment.json):
+one agent host, up to three account aliases, two providers, and ten permitted
+actions. The fixed price is $1,500 USD. The deliverable is a private map,
+boundary findings, fixes, and a rerun proof within five business days.
+
+This is not an enterprise IAM deployment or a penetration test. Read the
+[report template](docs/IDENTITY_BOUNDARY_ASSESSMENT_REPORT_TEMPLATE.md) before
+buying so the acceptance criteria are explicit.
+
+The optional Stripe launcher requires a dedicated `MARKSIGNALS_STRIPE_API_KEY`.
+It performs no action without `--publish`:
+
+```powershell
+node .\scripts\create-stripe-assessment-link.mjs
+node .\scripts\create-stripe-assessment-link.mjs --publish
+```
+
 ## License
 
 [MIT](LICENSE)

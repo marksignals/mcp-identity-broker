@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "offer_id": "identity-boundary-assessment-v1",
+  "name": "Identity Boundary Assessment",
+  "headline": "Check which account your agent can use.",
+  "price": {"currency": "usd", "unit_amount_cents": 150000, "type": "one_time"},
+  "scope": {
+    "agent_hosts": 1,
+    "identity_aliases": 3,
+    "providers": 2,
+    "allowlisted_actions": 10,
+    "testing_environment": "read-only or disposable only"
+  },
+  "includes": [
+    "identity and provider map",
+    "configuration boundary report",
+    "agreed wrong-identity checks",
+    "findings and remediation plan",
+    "rerun command and evidence summary"
+  ],
+  "delivery": {"business_days": 5, "format": "private Markdown or PDF report"},
+  "exclusions": [
+    "penetration testing",
+    "production-destructive testing",
+    "provider-side access-control changes without written approval",
+    "handling or retaining customer secret values",
+    "enterprise identity-provider implementation"
+  ],
+  "checkout": {"provider": "stripe", "environment_variable": "MARKSIGNALS_STRIPE_API_KEY", "status": "not_created"}
+}
