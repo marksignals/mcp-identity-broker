@@ -1,7 +1,7 @@
 {
   "name": "mcp-identity-broker",
   "version": "0.1.0",
-  "description": "Lease-bound identity isolation for upstream MCP tools.",
+  "description": "Keep MCP agents from acting as the wrong account.",
   "type": "module",
   "bin": {
     "mcp-identity-broker": "src/server.js"

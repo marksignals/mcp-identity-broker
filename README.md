@@ -1,94 +1,145 @@
 # MCP Identity Broker
 
-MCP Identity Broker prevents agents from fighting over a single “currently
-logged in” account. It is a small local MCP server that maps a named identity
-to a separately configured upstream MCP provider process, requires an
-exclusive short-lived lease, and exposes only allowlisted upstream tools.
+Keep MCP agents from acting as the wrong account.
 
-It never reads, writes, or logs a credential. Credential values remain in the
-environment or an external secret manager; checked-in configuration contains
-only `${ENVIRONMENT_VARIABLE}` references.
-
-## The problem
-
-Most desktop connectors bind to one live OAuth session. Switching that session
-for one agent changes it for every other agent. This is unsafe for independent
-brands, clients, or repositories.
-
-The broker uses a different unit of control:
+MCP Identity Broker is a local stdio MCP server for teams that run agents across
+more than one account, brand, client, or repository. Before an agent can use a
+provider, it must acquire a named identity. That lease is exclusive,
+time-limited, and limited to the provider tools you allow.
 
 ```text
-agent principal → named identity lease → isolated upstream MCP process → provider
+agent principal -> identity lease -> isolated provider process -> provider account
 ```
 
-An `identity_invoke` call can use only the credentials for the identity named by
-its held lease. A RunCue principal cannot acquire `marksignals`; a stale or
-released lease cannot invoke anything; and a provider tool must be allowlisted.
+The broker does not store credentials. Your secret manager or environment
+injects them only into the provider process for the identity being used.
 
-## What it is—and is not
+## When this helps
 
-- **Is:** a local, stdio MCP gateway for separately configured account aliases.
-- **Is:** an isolation primitive for GitHub, Outlook/Graph, Stripe, Gumroad, or
-  any provider represented by an upstream stdio MCP server.
-- **Is not:** a way to hijack a hosted connector’s current OAuth session.
-- **Is not:** multi-user authentication by itself. For multiple simultaneous
-  users, run it behind a real authenticated MCP transport or run one broker
-  instance per principal.
-- **Is not:** a secret store. Use OS environment variables, a vault injector,
-  1Password CLI, Azure Key Vault, or equivalent to inject short-lived tokens.
+Use this when one agent host can reach more than one account and "whoever is
+currently logged in" is not an acceptable permission model. Typical examples:
+
+- separate GitHub accounts for a product and a client;
+- separate mailboxes for separate brands;
+- an operations agent that may read one service but must not touch another.
+
+If every task uses one account and one provider, you probably do not need this.
+
+## What it does
+
+For each configured identity, the broker:
+
+- permits only named principals to acquire it;
+- grants one holder an exclusive lease with a time-to-live;
+- starts the configured upstream stdio MCP provider with that identity's
+  environment only;
+- allows only the provider tools listed in that identity's configuration; and
+- returns audit metadata without returning credentials.
+
+## What it does not do
+
+- It cannot switch or take over a hosted connector's shared OAuth session.
+- It is not a secret manager or a substitute for provider-side least privilege.
+- It is not multi-user authentication. Run one broker per trusted principal, or
+  put it behind an authenticated transport that derives the principal
+  server-side.
+- It does not make an untrusted local machine safe.
 
 ## Quick start
+
+### 1. Install and create local config
+
+Requires Node.js 20 or later. Clone this repository, then run:
 
 ```powershell
 npm install
 Copy-Item config.example.json identity-broker.json
+```
+
+`identity-broker.json` is intentionally ignored by Git. It contains no literal
+secrets, but it does describe your account aliases and allowed tools.
+
+### 2. Provide a principal and provider credentials
+
+Use your operating system, vault, or secret-injection tool to provide the
+variables referenced by your local config. For the GitHub example:
+
+```powershell
 $env:IDENTITY_BROKER_PRINCIPAL = "marksignals-agent"
-$env:MARKSIGNALS_GITHUB_TOKEN = "..." # inject from a vault; never commit
+$env:MARKSIGNALS_GITHUB_TOKEN = "<token from your secret manager>"
 $env:MARKSIGNALS_GITHUB_TOOLS = "get_file_contents,issue_read,create_issue"
+```
+
+Never commit a token. The broker rejects literal credential values in its JSON
+configuration.
+
+### 3. Start the broker
+
+```powershell
 node src/server.js --config "$PWD\identity-broker.json"
 ```
 
-Add the command as a local stdio MCP server in your agent host. The host then
-gets four tools:
+Configure that command as a local stdio MCP server in your agent host. The host
+receives four broker tools:
 
-1. `identity_status`
-2. `identity_acquire`
-3. `identity_invoke`
-4. `identity_release`
+| Tool | Use it to |
+| --- | --- |
+| `identity_status` | Check accessible identities, lease state, and allowed tools. |
+| `identity_acquire` | Acquire an identity and receive a lease ID. |
+| `identity_invoke` | Call one allowlisted provider tool with that lease. |
+| `identity_release` | Release the lease when the work is complete. |
 
-Use them in order: acquire → invoke allowlisted tool(s) → release. Leases expire
-automatically, and are exclusive per identity—not merely per provider.
+The normal call sequence is:
 
-## Mark Signals deployment pattern
+```text
+status -> acquire -> invoke -> release
+```
 
-Do **not** point this at a shared browser or a shared Codex connector. Instead:
+An expired or released lease cannot invoke a provider tool. A second holder
+cannot acquire an identity while it is leased.
 
-1. Create a dedicated Microsoft Graph OAuth credential for
-   `marksignals@outlook.com` and a dedicated GitHub credential for the
-   `marksignals` account or organization.
-2. Configure those credentials only in the `marksignals` alias.
-3. Run a broker instance whose `IDENTITY_BROKER_PRINCIPAL` is
-   `marksignals-agent`.
-4. Give Mark Signals only the needed tool allowlist—for example, mailbox read,
-   one email send operation, and exact GitHub repository operations.
-5. Keep RunCue and Ultimate Critic in separate aliases/principals or separate
-   broker processes.
+## Configure identities
 
-The hosted Outlook connector in this Codex session cannot be retrofitted by
-this program. A small Microsoft Graph MCP server (or another direct provider
-adapter) must be configured for the Mark Signals alias. That is intentional:
-no shared connector identity is ever switched.
+The example config shows the shape:
 
-The GitHub example uses GitHub's official MCP server in Docker. If Docker is
-not available, build or download its official `github-mcp-server` binary and
-replace the `command`/`args` with `github-mcp-server` / `["stdio"]` as described
-in that project's documentation. Do not replace the placeholder with an npm
-package: GitHub's official server is distributed as a container or binary.
+```json
+{
+  "identities": {
+    "marksignals": {
+      "allowed_principals": ["marksignals-agent"],
+      "providers": {
+        "github": {
+          "command": "docker",
+          "args": ["run", "-i", "--rm", "..."],
+          "allowed_tools": ["get_file_contents", "issue_read"],
+          "env": {
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${MARKSIGNALS_GITHUB_TOKEN}"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
-If GitHub CLI already holds separate account credentials, the included
-`scripts/start-github-identity-broker.ps1` obtains a selected account token for
-the child process only. It does **not** run `gh auth switch`, so it does not
-change the CLI account used by another agent. The local config remains ignored:
+Each provider needs a command, arguments, an explicit tool allowlist, and
+environment-variable references. The broker resolves those references only when
+it starts the upstream provider process.
+
+The included GitHub example uses the [official GitHub MCP
+server](https://github.com/github/github-mcp-server). Docker is optional if you
+install the official binary and update `command` and `args` in your local
+config.
+
+## GitHub CLI account helper
+
+`scripts/start-github-identity-broker.ps1` is an optional Windows helper for a
+GitHub CLI setup that already stores multiple accounts. It obtains the selected
+account's token for the broker child process only. It does not run `gh auth
+switch`, so it does not change another agent's active GitHub CLI account.
+
+It is a reference launcher for the `marksignals` example configuration. Adapt
+the environment-variable names before using it for another identity.
 
 ```powershell
 .\scripts\start-github-identity-broker.ps1 `
@@ -97,16 +148,13 @@ change the CLI account used by another agent. The local config remains ignored:
   -Principal marksignals-agent
 ```
 
-## Security posture
+## Security notes
 
-- Rejects literal credentials in config.
-- Requires a host-supplied principal from the environment; tool arguments
-  cannot choose a principal.
-- Enforces identity-level exclusive leases with TTL expiry.
-- Enforces provider and tool allowlists before launching an upstream process.
-- Returns only sanitized audit metadata for the current principal.
-
-Read [SECURITY.md](SECURITY.md) before using this with production credentials.
+- Keep local config permission-restricted.
+- Use short-lived, provider-scoped credentials where possible.
+- Allow only the tools needed for the specific identity.
+- Treat a broker restart as lease invalidation. Leases are in memory in v0.1.
+- Read [SECURITY.md](SECURITY.md) before using production credentials.
 
 ## Development
 
@@ -114,6 +162,9 @@ Read [SECURITY.md](SECURITY.md) before using this with production credentials.
 npm test
 ```
 
+The test suite covers exclusive leases, expiry, cross-principal isolation, and
+rejection of literal credentials in configuration.
+
 ## License
 
-MIT.
+[MIT](LICENSE)
