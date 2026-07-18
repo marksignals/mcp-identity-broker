@@ -54,8 +54,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     const { name, arguments: raw = {} } = request.params;
     if (name === "identity_status") return result(leases.status(principal));
-    if (name === "identity_acquire") return result(leases.acquire({ ...schemas.acquire.parse(raw), principal }));
-    if (name === "identity_release") return result(leases.release({ ...schemas.release.parse(raw), principal }));
+    if (name === "identity_acquire") {
+      const input = schemas.acquire.parse(raw);
+      return result(leases.acquire({
+        identity: input.identity,
+        provider: input.provider,
+        ttlSeconds: input.ttl_seconds,
+        principal
+      }));
+    }
+    if (name === "identity_release") {
+      const input = schemas.release.parse(raw);
+      return result(leases.release({ leaseId: input.lease_id, principal }));
+    }
     if (name === "identity_invoke") {
       const input = schemas.invoke.parse(raw);
       const lease = leases.require({ leaseId: input.lease_id, principal });
